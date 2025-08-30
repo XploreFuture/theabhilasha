@@ -1,0 +1,145 @@
+const router = require('express').Router();
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
+const Ticket = require('../models/Ticket'); // Assuming Ticket model is defined
+const protect = require('../middleware/protect'); // Assuming protect middleware
+
+router.get("/ticket/:paymentId", protect, async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+
+    const ticket = await Ticket.findOne({ paymentId }).populate([
+      { path: "eventId", select: "title date location time" },
+      { path: "userId", select: "username email fullName" },
+    ]);
+
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+    if (ticket.userId._id.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    const filename = ticket_${ticket.paymentId}.pdf;
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", attachment; filename=${filename});
+
+    // ---------------- Register Fonts (Optional) ----------------
+    // If you have custom fonts, register them here (e.g., Roboto, OpenSans)
+    // doc.registerFont('CustomFont', path.join(__dirname, '../assets/Roboto-Regular.ttf'));
+
+    // ---------------- Gradient Background ----------------
+    const gradient = doc.linearGradient(0, 0, doc.page.width, doc.page.height);
+    gradient.stop(0, '#E0F2FE').stop(1, '#F8FAFC'); // Light blue to white gradient
+    doc.rect(0, 0, doc.page.width, doc.page.height).fill(gradient);
+
+    // ---------------- Decorative Border ----------------
+    doc
+      .lineWidth(2)
+      .roundedRect(30, 30, doc.page.width - 60, doc.page.height - 60, 10)
+      .strokeColor('#1E40AF')
+      .stroke();
+
+    // ---------------- Inner Content Border ----------------
+    doc
+      .lineWidth(1)
+      .roundedRect(50, 50, doc.page.width - 100, doc.page.height - 100, 8)
+      .strokeColor('#93C5FD')
+      .dash(5, { space: 5 }) // Dashed inner border
+      .stroke();
+
+    // ---------------- Logo ----------------
+    const logoPath = path.join(__dirname, "../assets/Abhilashaa.png");
+    let logoWidth = 80;
+    let logoHeight = 80;
+    let headingX = 70;
+
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 70, 60, { width: logoWidth, height: logoHeight });
+      headingX += logoWidth + 20; // Space between logo and heading
+    }
+
+    // ---------------- Header ----------------
+    doc
+      .font('Helvetica-Bold') // Professional font
+      .fillColor('#1E40AF')
+      .fontSize(26)
+      .text("🎟 Event Ticket", headingX, 75, { align: 'left' });
+
+    // Decorative line under header
+    doc
+      .moveTo(70, 110)
+      .lineTo(doc.page.width - 70, 110)
+      .lineWidth(1)
+      .strokeColor('#93C5FD')
+      .stroke();
+
+    doc.moveDown(4);
+
+    // ---------------- Event Details ----------------
+    doc.font('Helvetica').fontSize(16).fillColor('#000000');
+    doc.text(`Event: `, 70, doc.y, { continued: true }).fillColor('#1E3A8A').text(ticket.eventId?.title ?? "Unknown Event");
+    if (ticket.eventId?.date) {
+      doc.fillColor('#000').text(`Date: `, { continued: true }).fillColor('#1E3A8A').text(new Date(ticket.eventId.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+    }
+    if (ticket.eventId?.location) {
+      doc.fillColor('#000').text(`Location: `, { continued: true }).fillColor('#1E3A8A').text(ticket.eventId.location);
+    }
+    if (ticket.eventId?.time) {
+      doc.fillColor('#000').text(`Time: `, { continued: true }).fillColor('#1E3A8A').text(ticket.eventId.time);
+    }
+
+    doc.moveDown(2);
+
+    // ---------------- Decorative Divider ----------------
+    doc
+      .moveTo(70, doc.y)
+      .lineTo(doc.page.width - 70, doc.y)
+      .lineWidth(0.5)
+      .strokeColor('#CBD5E1')
+      .stroke();
+
+    doc.moveDown(2);
+
+    // ---------------- User Details ----------------
+    doc.font('Helvetica').fontSize(14).fillColor('#000000');
+    doc.text(`Name: `, 70, doc.y, { continued: true }).fillColor('#065F46').text(ticket.userId.fullName ?? ticket.userId.username);
+    doc.fillColor('#000').text(`Email: `, { continued: true }).fillColor('#065F46').text(ticket.userId.email);
+    doc.fillColor('#000').text(`Ticket Type: `, { continued: true }).fillColor('#065F46').text(ticket.ticketType);
+    doc.fillColor('#000').text(`Amount: , { continued: true }).fillColor('#065F46').text(₹${ticket.amount}`);
+
+    doc.moveDown(2);
+
+    // ---------------- Payment Details ----------------
+    doc.font('Helvetica').fontSize(14).fillColor('#000000');
+    doc.text(`Order ID: `, 70, doc.y, { continued: true }).fillColor('#6B21A8').text(ticket.orderId);
+    doc.fillColor('#000').text(`Payment ID: `, { continued: true }).fillColor('#6B21A8').text(ticket.paymentId);
+    doc.fillColor('#000').text(`Status: `, { continued: true }).fillColor('#15803D').text(ticket.status);
+    doc.fillColor('#000').text(`Booked On: `, { continued: true }).fillColor('#15803D').text(new Date(ticket.createdAt).toLocaleString());
+
+    doc.moveDown(3);
+
+    // ---------------- Footer ----------------
+    doc
+      .font('Helvetica-Oblique')
+      .fillColor('#DC2626')
+      .fontSize(14)
+      .text("✅ Please present this ticket at entry.", 70, doc.y, { align: "center" });
+
+    // ---------------- Decorative Element (Optional Ticket Stub Effect) ----------------
+    doc
+      .circle(30, doc.page.height / 2, 15) // Left semi-circle for ticket stub effect
+      .fillAndStroke('#F1F5F9', '#1E40AF')
+      .circle(doc.page.width - 30, doc.page.height / 2, 15) // Right semi-circle
+      .fillAndStroke('#F1F5F9', '#1E40AF');
+
+    doc.pipe(res);
+    doc.end();
+  } catch (err) {
+    console.error("PDF download error:", err);
+    res.status(500).json({ message: "Failed to generate ticket PDF" });
+  }
+});
+
+export default router;

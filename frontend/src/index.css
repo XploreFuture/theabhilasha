@@ -1,0 +1,151 @@
+/* Base styles and variables for the light theme (default) */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Set color scheme to light only. This tells the browser to use
+  light mode for its native elements like scrollbars and inputs. */
+  color-scheme: light;
+
+  /* Explicitly define all colors for your light theme */
+  --bg-color: #fafaf5;
+  --text-color: #213547;
+  --link-color: #646cff;
+  --link-hover-color: #747bff;
+  --button-bg-color: #f9f9f9;
+  --button-border-color: transparent;
+  --button-hover-border-color: #646cff;
+
+  font-family: Poppins;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+}
+
+/* ❌ Remove this block completely, as it's for dark mode. */
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    ...
+  }
+} */
+
+/* Applying the CSS variables to your HTML elements */
+body {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: Poppins;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+footer{
+    margin: 0;
+
+}
+a {
+  font-weight: 500;
+  color: var(--link-color);
+  text-decoration: inherit;
+  font-family: Lato;
+}
+
+a:hover {
+  color: var(--link-hover-color);
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid var(--button-border-color);
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: Lato;
+  background-color: var(--button-bg-color);
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+button:hover {
+  border-color: var(--button-hover-border-color);
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Other custom styles remain the same */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+p {
+  font-family: Poppins;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  font-family: Poppins;
+}
+
+.rounded-pill {
+  border-radius: 50rem;
+}
+
+.star-rating {
+  display: flex;
+  gap: 0.25rem;
+  /* tight spacing */
+}
+
+.d-pill {
+  padding: 4px 16px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 18px !important;
+}
+
+/* Custom styles for Swiper navigation arrows */
+.swiper-button-next,
+.swiper-button-prev {
+  width: 32px;
+  /* Adjust the width */
+  height: 32px;
+  /* Adjust the height */
+  margin-top: -16px;
+  /* Adjust to keep the arrow centered vertically */
+  color: #646cff;
+  /* Change the arrow color if you want */
+}
+
+/* Adjust the icon size inside the button */
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 16px;
+  /* Adjust the font size of the icon itself */
+}
+
+.mySwiper.swiper-container {
+  padding-bottom: 20px !important;
+  /* Adjust this value as needed */
+}
+
+/* Position the pagination dots */
+.mySwiper .swiper-pagination {
+  bottom: 0px !important;
+}
